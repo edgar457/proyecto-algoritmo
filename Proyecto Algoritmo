@@ -1,1 +1,142 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <fstream> // Para manejo de archivos
+using namespace std;
 
+// Estructura para un contacto
+struct Contacto {
+    string nombre;
+    string telefono;
+};
+
+// Prototipos de funciones
+void agregarContacto(vector<Contacto>& agenda);
+void mostrarContactos(const vector<Contacto>& agenda);
+void buscarContacto(const vector<Contacto>& agenda);
+void guardarArchivo(const vector<Contacto>& agenda);
+void cargarArchivo(vector<Contacto>& agenda);
+
+int main() {
+    vector<Contacto> agenda;
+    int opcion;
+
+    // Cargar contactos guardados al iniciar
+    cargarArchivo(agenda);
+
+    do {
+        cout << "\n===== AGENDA DE CONTACTOS =====\n";
+        cout << "1. Agregar contacto\n";
+        cout << "2. Mostrar todos los contactos\n";
+        cout << "3. Buscar contacto por nombre\n";
+        cout << "0. Salir\n";
+        cout << "Seleccione una opcion: ";
+        cin >> opcion;
+        cin.ignore(); // limpiar buffer
+
+        switch (opcion) {
+        case 1:
+            agregarContacto(agenda);
+            guardarArchivo(agenda); // Guardar cada vez que se agrega
+            break;
+        case 2:
+            mostrarContactos(agenda);
+            break;
+        case 3:
+            buscarContacto(agenda);
+            break;
+        case 0:
+            cout << "Saliendo de la agenda...\n";
+            break;
+        default:
+            cout << "Opcion invalida. Intente de nuevo.\n";
+        }
+    } while (opcion != 0);
+
+    return 0;
+}
+
+// ================== FUNCIONES ==================
+
+void agregarContacto(vector<Contacto>& agenda) {
+    Contacto c;
+    cout << "Ingrese nombre: ";
+    getline(cin, c.nombre);
+    cout << "Ingrese telefono: ";
+    getline(cin, c.telefono);
+
+    agenda.push_back(c);
+    cout << "Contacto agregado correctamente.\n";
+}
+
+void mostrarContactos(const vector<Contacto>& agenda) {
+    if (agenda.empty()) {
+        cout << "No hay contactos registrados.\n";
+        return;
+    }
+
+    cout << "\n===== LISTADO DE CONTACTOS =====\n";
+    for (size_t i = 0; i < agenda.size(); i++) {
+        cout << i + 1 << ". " << agenda[i].nombre
+            << " - " << agenda[i].telefono << "\n";
+    }
+}
+
+void buscarContacto(const vector<Contacto>& agenda) {
+    if (agenda.empty()) {
+        cout << "No hay contactos registrados.\n";
+        return;
+    }
+
+    string busqueda;
+    cout << "Ingrese el nombre a buscar: ";
+    getline(cin, busqueda);
+
+    bool encontrado = false;
+    cout << "\nResultados:\n";
+    for (size_t i = 0; i < agenda.size(); i++) {
+        if (agenda[i].nombre.find(busqueda) != string::npos) {
+            cout << i + 1 << ". " << agenda[i].nombre
+                << " - " << agenda[i].telefono << "\n";
+            encontrado = true;
+        }
+    }
+
+    if (!encontrado) {
+        cout << "No se encontraron contactos que coincidan.\n";
+    }
+}
+
+// Guardar contactos en archivo
+void guardarArchivo(const vector<Contacto>& agenda) {
+    ofstream archivo("agenda.txt");
+    if (!archivo) {
+        cout << "Error al abrir el archivo para guardar.\n";
+        return;
+    }
+
+    for (const auto& c : agenda) {
+        archivo << c.nombre << "," << c.telefono << "\n";
+    }
+
+    archivo.close();
+}
+
+// Cargar contactos desde archivo
+void cargarArchivo(vector<Contacto>& agenda) {
+    ifstream archivo("agenda.txt");
+    if (!archivo) return; // Si no existe, no hace nada
+
+    string linea;
+    while (getline(archivo, linea)) {
+        size_t coma = linea.find(',');
+        if (coma != string::npos) {
+            Contacto c;
+            c.nombre = linea.substr(0, coma);
+            c.telefono = linea.substr(coma + 1);
+            agenda.push_back(c);
+        }
+    }
+
+    archivo.close();
+}
